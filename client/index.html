@@ -115,47 +115,62 @@
       <div class="charts-row-2">
         <div class="chart-card">
           <div class="chart-header">
-            <span class="chart-title">Atletas por Divisão</span>
-            <span class="chart-sub">Distribuição</span>
+            <div class="chart-heading">
+              <span class="chart-title">Atletas por Divisão</span>
+              <span class="chart-sub">Distribuição por categoria de peso</span>
+            </div>
           </div>
-          <div id="chart-bar-div"></div>
+          <p class="chart-desc">Mostra quantos atletas estão cadastrados em cada divisão de peso. A linha tracejada vermelha indica a média (μ) entre as divisões.</p>
+          <div class="chart-body"><div id="chart-bar-div"></div></div>
         </div>
         <div class="chart-card">
           <div class="chart-header">
-            <span class="chart-title">Perfil do Plantel</span>
-            <span class="chart-sub">Composição por classificação</span>
+            <div class="chart-heading">
+              <span class="chart-title">Perfil do Plantel</span>
+              <span class="chart-sub">Composição por classificação</span>
+            </div>
           </div>
-          <div id="chart-donut-class"></div>
+          <p class="chart-desc">Proporção de atletas em cada nível de experiência: Elite, Experiente, Promessa e Estreante. O número central é o total de atletas.</p>
+          <div class="chart-body"><div id="chart-donut-class"></div></div>
         </div>
       </div>
 
       <div class="chart-card">
         <div class="chart-header">
-          <span class="chart-title">Eventos por Período</span>
-          <span class="chart-sub">Tendência histórica</span>
+          <div class="chart-heading">
+            <span class="chart-title">Eventos por Período</span>
+            <span class="chart-sub">Tendência histórica de cards</span>
+          </div>
           <div class="chart-filters">
             <button class="filter-btn active" data-period="all">Tudo</button>
             <button class="filter-btn" data-period="12m">12M</button>
             <button class="filter-btn" data-period="6m">6M</button>
           </div>
         </div>
-        <div id="chart-line-eventos"></div>
+        <p class="chart-desc">Quantidade de eventos (cards) realizados em cada mês. A área sombreada destaca o volume; a linha tracejada mostra a tendência (alta, queda ou estável).</p>
+        <div class="chart-body"><div id="chart-line-eventos"></div></div>
       </div>
 
       <div class="charts-row-2">
         <div class="chart-card">
           <div class="chart-header">
-            <span class="chart-title">Métodos de Finalização</span>
-            <span class="chart-sub">Frequência relativa</span>
+            <div class="chart-heading">
+              <span class="chart-title">Métodos de Finalização</span>
+              <span class="chart-sub">Como os confrontos terminam</span>
+            </div>
           </div>
-          <div id="chart-radar-metodos"></div>
+          <p class="chart-desc">Frequência relativa de cada forma de encerramento de luta (nocaute, finalização, decisão etc.) entre todos os confrontos registrados.</p>
+          <div class="chart-body"><div id="chart-radar-metodos"></div></div>
         </div>
         <div class="chart-card">
           <div class="chart-header">
-            <span class="chart-title">Top Atletas</span>
-            <span class="chart-sub">Por número de vitórias</span>
+            <div class="chart-heading">
+              <span class="chart-title">Top Atletas</span>
+              <span class="chart-sub">Ranking por vitórias no cartel</span>
+            </div>
           </div>
-          <div id="chart-hbar-atletas"></div>
+          <p class="chart-desc">Os 10 atletas com mais vitórias registradas no cartel (formato V-D-E). Barras mais longas = mais vitórias; a linha tracejada marca a média do grupo.</p>
+          <div class="chart-body"><div id="chart-hbar-atletas"></div></div>
         </div>
       </div>
     </section>
@@ -163,7 +178,6 @@
     <!-- ── Atletas ────────────────────────────────── -->
     <section id="section-lutadores" class="section">
       <div class="section-header">
-        <h2>Atletas</h2>
         <button class="btn btn-primary" onclick="abrirModalLutador()">+ Novo Atleta</button>
       </div>
       <div class="filters">
@@ -178,7 +192,6 @@
     <!-- ── Divisões ───────────────────────────────── -->
     <section id="section-divisoes" class="section">
       <div class="section-header">
-        <h2>Divisões</h2>
         <button class="btn btn-primary" onclick="abrirModalDivisao()">+ Nova Divisão</button>
       </div>
       <div id="tabela-divisoes"></div>
@@ -187,7 +200,6 @@
     <!-- ── Eventos ───────────────────────────────── -->
     <section id="section-cards" class="section">
       <div class="section-header">
-        <h2>Eventos</h2>
         <button class="btn btn-primary" onclick="abrirModalCard()">+ Novo Evento</button>
       </div>
       <div id="tabela-cards"></div>
@@ -196,7 +208,6 @@
     <!-- ── Confrontos ────────────────────────────── -->
     <section id="section-lutas" class="section">
       <div class="section-header">
-        <h2>Confrontos</h2>
         <button class="btn btn-primary" onclick="abrirModalLuta()">+ Novo Confronto</button>
       </div>
       <div class="filters">
@@ -211,7 +222,6 @@
     <!-- ── Cinturões ─────────────────────────────── -->
     <section id="section-campeoes" class="section">
       <div class="section-header">
-        <h2>Cinturões em Disputa</h2>
         <button class="btn btn-ghost" onclick="carregarCampeoes()">↺ Atualizar</button>
       </div>
       <div id="tabela-campeoes"></div>
@@ -220,7 +230,6 @@
     <!-- ── Desempenho ────────────────────────────── -->
     <section id="section-atividade" class="section">
       <div class="section-header">
-        <h2>Desempenho dos Atletas</h2>
         <button class="btn btn-ghost" onclick="carregarAtividade()">↺ Atualizar</button>
       </div>
       <div id="tabela-atividade"></div>
@@ -228,29 +237,15 @@
 
     <!-- ── Estatísticas ──────────────────────────── -->
     <section id="section-consultas" class="section">
-      <div class="section-header">
-        <h2>Estatísticas</h2>
-      </div>
       <div class="tabs">
         <button class="tab-btn active" data-consulta="lutadores-por-divisao"
           onclick="showConsulta('lutadores-por-divisao')">Atletas por Divisão</button>
         <button class="tab-btn" data-consulta="lutas-titulo"
           onclick="showConsulta('lutas-titulo')">Lutas de Título</button>
-        <button class="tab-btn" data-consulta="divisoes-sem-cinturao"
-          onclick="showConsulta('divisoes-sem-cinturao')">Divisões sem Cinturão</button>
         <button class="tab-btn" data-consulta="lutadores-acima-media"
           onclick="showConsulta('lutadores-acima-media')">Acima da Média</button>
       </div>
       <div id="consulta-resultado"></div>
-    </section>
-
-    <!-- ── Histórico ─────────────────────────────── -->
-    <section id="section-logs" class="section">
-      <div class="section-header">
-        <h2>Histórico de Cinturões</h2>
-        <button class="btn btn-ghost" onclick="carregarLogs()">↺ Atualizar</button>
-      </div>
-      <div id="tabela-logs"></div>
     </section>
 
   </div>

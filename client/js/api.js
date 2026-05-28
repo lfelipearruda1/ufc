@@ -1,11 +1,33 @@
 const BASE = 'http://localhost:8080';
 
+function _apiErr(msg) {
+  const e = new Error(msg);
+  e.fromApi = true;
+  return e;
+}
+
 async function req(method, path, body) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body !== undefined) opts.body = JSON.stringify(body);
-  const res = await fetch(BASE + path, opts);
+
+  let res;
+  try {
+    res = await fetch(BASE + path, opts);
+  } catch {
+    throw _apiErr('Servidor indisponível. Verifique se o servidor está em execução.');
+  }
+
   const text = await res.text();
-  try { return JSON.parse(text); } catch { return text; }
+  let data;
+  try { data = JSON.parse(text); } catch {
+    throw _apiErr(res.ok ? 'Resposta inesperada do servidor.' : `Erro ${res.status}.`);
+  }
+
+  if (!res.ok) {
+    throw _apiErr(data?.erro || data?.mensagem || `Erro ${res.status}.`);
+  }
+
+  return data;
 }
 
 // ── Lutadores ──────────────────────────────
@@ -48,9 +70,5 @@ const API = {
   // ── Consultas ─────────────────────────────
   getLutadoresPorDivisao:   () => req('GET', '/api/consultas/lutadores-por-divisao'),
   getLutasTitulo:           () => req('GET', '/api/consultas/lutas-titulo'),
-  getDivisoesSemCinturao:   () => req('GET', '/api/consultas/divisoes-sem-cinturao'),
   getLutadoresAcimaDaMedia: () => req('GET', '/api/consultas/lutadores-acima-media'),
-
-  // ── Logs ──────────────────────────────────
-  getLogsCinturao: () => req('GET', '/api/logs/cinturao'),
 };

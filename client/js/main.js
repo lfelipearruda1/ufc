@@ -134,8 +134,7 @@ const TITLES = {
   lutas:     'Confrontos',
   campeoes:  'Cinturões',
   atividade: 'Desempenho',
-  consultas: 'Estatísticas',
-  logs:      'Histórico'
+  consultas: 'Estatísticas'
 };
 
 function showSection(nome) {
@@ -146,14 +145,6 @@ function showSection(nome) {
   document.getElementById('topbar-title').textContent = TITLES[nome] || nome;
   loaders[nome] && loaders[nome]();
 }
-
-/* ── Relógio ────────────────────────────────────────── */
-function atualizarRelogio() {
-  const el = document.getElementById('topbar-time');
-  if(el) el.textContent = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
-setInterval(atualizarRelogio, 1000);
-atualizarRelogio();
 
 /* ── Filtro período eventos ─────────────────────────── */
 document.addEventListener('click', e => {
@@ -169,6 +160,51 @@ document.addEventListener('click', e => {
   Charts.line(document.getElementById('chart-line-eventos'), data);
 });
 
+/* ── Erro amigável ─────────────────────────────────── */
+function erroApi(e, fallback) {
+  return (e?.fromApi && e.message) ? e.message : fallback;
+}
+
+/* ── Labels de colunas ─────────────────────────────── */
+const COL_LABELS = {
+  nome:               'Nome',
+  apelido:            'Apelido',
+  cartel:             'Cartel',
+  peso:               'Peso (kg)',
+  peso_min:           'Peso Mín.',
+  peso_max:           'Peso Máx.',
+  nacionalidade:      'Nac.',
+  classificacao:      'Class.',
+  nome_divisao:       'Divisão',
+  cidade:             'Cidade',
+  pais:               'País',
+  data:               'Data',
+  data_hora:          'Data / Hora',
+  quant_lutas:        'Confrontos',
+  quant_rounds:       'Rounds',
+  num_edicao:         'Edição',
+  metodo:             'Método',
+  resultado:          'Resultado',
+  visibilidade:       'Visibilidade',
+  tipo_cinturao:      'Tipo de Cinturão',
+  nome_lutador:       'Atleta',
+  apelido_desafiante: 'Desafiante',
+  apelido_desafiado:  'Desafiado',
+  nome_desafiante:    'Desafiante',
+  nome_desafiado:     'Desafiado',
+  total_lutadores:    'Atletas',
+  total_lutas:        'Lutas',
+  total_vitorias:     'Vitórias',
+  total_derrotas:     'Derrotas',
+  total_empates:      'Empates',
+  media_lutas:        'Média de Lutas',
+  receita_por_pagante:'Receita / Pagante',
+};
+
+function labelCol(col) {
+  return COL_LABELS[col] || col.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 /* ── Utilitários ───────────────────────────────────── */
 function classificacaoBadge(c) {
   const map = {
@@ -182,9 +218,10 @@ function classificacaoBadge(c) {
 
 function tbl(headers, rows) {
   if (!rows.length) return `<div class="empty-state"><div class="icon">—</div><p>Nenhum registro encontrado</p></div>`;
+  const numbered = rows.map((r, i) => r.replace('<tr>', `<tr><td class="row-num">${i + 1}</td>`));
   return `<div class="table-wrap"><table>
-    <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-    <tbody>${rows.join('')}</tbody>
+    <thead><tr><th class="row-num">#</th>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${numbered.join('')}</tbody>
   </table></div>`;
 }
 
@@ -210,11 +247,13 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(
    ATLETAS (lutadores)
 ════════════════════════════════════════════════════ */
 async function carregarLutadores() {
-  divisoes = await API.getDivisoes();
-  const select = document.getElementById('filtro-divisao');
-  select.innerHTML = '<option value="">Todas as divisões</option>' +
-    divisoes.map(d => `<option value="${d.id_divisao}">${d.nome_divisao}</option>`).join('');
-  await filtrarLutadores();
+  try {
+    divisoes = await API.getDivisoes();
+    const select = document.getElementById('filtro-divisao');
+    select.innerHTML = '<option value="">Todas as divisões</option>' +
+      divisoes.map(d => `<option value="${d.id_divisao}">${d.nome_divisao}</option>`).join('');
+    await filtrarLutadores();
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar os atletas.')); }
 }
 
 async function filtrarLutadores() {
@@ -222,7 +261,7 @@ async function filtrarLutadores() {
   try {
     lutadores = await API.getLutadores(idDiv || null);
     renderLutadores(lutadores);
-  } catch(e) { showAlert('Erro ao carregar atletas: ' + e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível filtrar os atletas.')); }
 }
 
 function renderLutadores(lista) {
@@ -273,33 +312,38 @@ function abrirModalLutador(dados = null) {
 }
 
 async function editarLutador(id) {
-  if (!divisoes.length) divisoes = await API.getDivisoes();
-  const l = await API.getLutador(id);
-  abrirModalLutador(l);
+  try {
+    if (!divisoes.length) divisoes = await API.getDivisoes();
+    const l = await API.getLutador(id);
+    abrirModalLutador(l);
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar o atleta.')); }
 }
 
 async function salvarLutador() {
   const payload = {
-    nome: document.getElementById('f-nome').value,
-    apelido: document.getElementById('f-apelido').value,
+    nome: document.getElementById('f-nome').value.trim(),
+    apelido: document.getElementById('f-apelido').value.trim(),
     peso: document.getElementById('f-peso').value,
-    cartel: document.getElementById('f-cartel').value,
-    nacionalidade: document.getElementById('f-nac').value,
+    cartel: document.getElementById('f-cartel').value.trim(),
+    nacionalidade: document.getElementById('f-nac').value.trim(),
     id_divisao: document.getElementById('f-divisao').value,
   };
+  if (!payload.nome) { showAlert('O nome do atleta é obrigatório.'); return; }
   try {
     const res = editId ? await API.updateLutador(editId, payload) : await API.createLutador(payload);
-    if (res.erro) { showAlert(res.erro); return; }
-    showAlert(res.mensagem || 'Salvo!', 'success');
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert(res?.mensagem || 'Atleta salvo com sucesso.', 'success');
     fecharModal(); carregarLutadores();
-  } catch(e) { showAlert(e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível salvar o atleta.')); }
 }
 
 async function deletarLutador(id) {
   if (!confirm('Confirma exclusão do atleta?')) return;
-  const res = await API.deleteLutador(id);
-  if (res.erro) { showAlert(res.erro); return; }
-  showAlert('Atleta removido', 'success'); carregarLutadores();
+  try {
+    const res = await API.deleteLutador(id);
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert('Atleta removido com sucesso.', 'success'); carregarLutadores();
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível excluir o atleta.')); }
 }
 
 function abrirTransferir(id, nome) {
@@ -316,13 +360,13 @@ function abrirTransferir(id, nome) {
 
 async function salvarTransferir() {
   const idDivisao = document.getElementById('f-div-transferir').value;
-  if (!idDivisao) { showAlert('Selecione uma divisão'); return; }
+  if (!idDivisao) { showAlert('Selecione uma divisão antes de transferir.'); return; }
   try {
     const res = await API.transferirLutador(editId, idDivisao);
-    if (res.erro) { showAlert(res.erro); return; }
-    showAlert(res.mensagem || 'Transferido!', 'success');
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert(res?.mensagem || 'Atleta transferido com sucesso.', 'success');
     fecharModal(); carregarLutadores();
-  } catch(e) { showAlert(e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível realizar a transferência.')); }
 }
 
 /* ════════════════════════════════════════════════════
@@ -331,7 +375,7 @@ async function salvarTransferir() {
 async function carregarDivisoes() {
   try {
     divisoes = await API.getDivisoes(); renderDivisoes(divisoes);
-  } catch(e) { showAlert('Erro ao carregar divisões: ' + e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar as divisões.')); }
 }
 
 function renderDivisoes(lista) {
@@ -363,27 +407,34 @@ function abrirModalDivisao(dados = null) {
   abrirModal();
 }
 
-async function editarDivisao(id) { const d = await API.getDivisao(id); abrirModalDivisao(d); }
+async function editarDivisao(id) {
+  try {
+    const d = await API.getDivisao(id); abrirModalDivisao(d);
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar a divisão.')); }
+}
 
 async function salvarDivisao() {
   const payload = {
-    nome_divisao: document.getElementById('f-nome-div').value,
+    nome_divisao: document.getElementById('f-nome-div').value.trim(),
     peso_min: document.getElementById('f-peso-min').value,
     peso_max: document.getElementById('f-peso-max').value,
   };
+  if (!payload.nome_divisao) { showAlert('O nome da divisão é obrigatório.'); return; }
   try {
     const res = editId ? await API.updateDivisao(editId, payload) : await API.createDivisao(payload);
-    if (res.erro) { showAlert(res.erro); return; }
-    showAlert(res.mensagem || 'Salvo!', 'success');
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert(res?.mensagem || 'Divisão salva com sucesso.', 'success');
     fecharModal(); carregarDivisoes();
-  } catch(e) { showAlert(e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível salvar a divisão.')); }
 }
 
 async function deletarDivisao(id) {
   if (!confirm('Confirma exclusão da divisão?')) return;
-  const res = await API.deleteDivisao(id);
-  if (res.erro) { showAlert(res.erro); return; }
-  showAlert('Divisão removida', 'success'); carregarDivisoes();
+  try {
+    const res = await API.deleteDivisao(id);
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert('Divisão removida com sucesso.', 'success'); carregarDivisoes();
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível excluir a divisão.')); }
 }
 
 /* ════════════════════════════════════════════════════
@@ -392,7 +443,7 @@ async function deletarDivisao(id) {
 async function carregarCards() {
   try {
     cards = await API.getCards(); renderCards(cards);
-  } catch(e) { showAlert('Erro ao carregar eventos: ' + e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar os eventos.')); }
 }
 
 function renderCards(lista) {
@@ -431,28 +482,35 @@ function abrirModalCard(dados = null) {
   abrirModal();
 }
 
-async function editarCard(id) { const c = await API.getCard(id); abrirModalCard(c); }
+async function editarCard(id) {
+  try {
+    const c = await API.getCard(id); abrirModalCard(c);
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar o evento.')); }
+}
 
 async function salvarCard() {
   const payload = {
-    cidade: document.getElementById('f-cidade').value,
-    pais: document.getElementById('f-pais').value,
+    cidade: document.getElementById('f-cidade').value.trim(),
+    pais: document.getElementById('f-pais').value.trim(),
     data: document.getElementById('f-data').value,
     quant_lutas: document.getElementById('f-quant-lutas').value,
   };
+  if (!payload.cidade) { showAlert('A cidade do evento é obrigatória.'); return; }
   try {
     const res = editId ? await API.updateCard(editId, payload) : await API.createCard(payload);
-    if (res.erro) { showAlert(res.erro); return; }
-    showAlert(res.mensagem || 'Salvo!', 'success');
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert(res?.mensagem || 'Evento salvo com sucesso.', 'success');
     fecharModal(); carregarCards();
-  } catch(e) { showAlert(e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível salvar o evento.')); }
 }
 
 async function deletarCard(id) {
   if (!confirm('Confirma exclusão do evento?')) return;
-  const res = await API.deleteCard(id);
-  if (res.erro) { showAlert(res.erro); return; }
-  showAlert('Evento removido', 'success'); carregarCards();
+  try {
+    const res = await API.deleteCard(id);
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert('Evento removido com sucesso.', 'success'); carregarCards();
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível excluir o evento.')); }
 }
 
 async function verLutasDoCard(idCard) {
@@ -465,27 +523,29 @@ async function verLutasDoCard(idCard) {
    CONFRONTOS (lutas)
 ════════════════════════════════════════════════════ */
 async function carregarLutas() {
-  if (!visibilidades.length) visibilidades = await API.getVisibilidades();
-  if (!lutadores.length)    lutadores = await API.getLutadores();
-  if (!cards.length)        cards = await API.getCards();
+  try {
+    if (!visibilidades.length) visibilidades = await API.getVisibilidades();
+    if (!lutadores.length)    lutadores = await API.getLutadores();
+    if (!cards.length)        cards = await API.getCards();
 
-  const sel = document.getElementById('filtro-card');
-  if (sel.options.length <= 1) {
-    cards.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id_card;
-      o.textContent = `${c.cidade} (${c.data ? c.data.substring(0,10) : '-'})`;
-      sel.appendChild(o);
-    });
-  }
-  await filtrarLutas();
+    const sel = document.getElementById('filtro-card');
+    if (sel.options.length <= 1) {
+      cards.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id_card;
+        o.textContent = `${c.cidade} (${c.data ? c.data.substring(0,10) : '-'})`;
+        sel.appendChild(o);
+      });
+    }
+    await filtrarLutas();
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar os confrontos.')); }
 }
 
 async function filtrarLutas() {
   const idCard = document.getElementById('filtro-card').value;
   try {
     const lista = await API.getLutas(idCard || null); renderLutas(lista);
-  } catch(e) { showAlert('Erro ao carregar confrontos: ' + e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível filtrar os confrontos.')); }
 }
 
 function renderLutas(lista) {
@@ -547,31 +607,43 @@ function abrirModalLuta(dados = null) {
   abrirModal();
 }
 
-async function editarLuta(id) { const l = await API.getLuta(id); abrirModalLuta(l); }
+async function editarLuta(id) {
+  try {
+    const l = await API.getLuta(id); abrirModalLuta(l);
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar o confronto.')); }
+}
 
 async function salvarLuta() {
   const payload = {
     metodo: document.getElementById('f-metodo').value,
-    resultado: document.getElementById('f-resultado').value,
+    resultado: document.getElementById('f-resultado').value.trim(),
     quant_rounds: document.getElementById('f-rounds').value,
     id_desafiante: document.getElementById('f-desafiante').value,
     id_desafiado: document.getElementById('f-desafiado').value,
     id_card: document.getElementById('f-card').value,
     id_visibilidade: document.getElementById('f-visibilidade').value,
   };
+  if (!payload.id_desafiante || !payload.id_desafiado) {
+    showAlert('Selecione o desafiante e o desafiado.'); return;
+  }
+  if (payload.id_desafiante === payload.id_desafiado) {
+    showAlert('O desafiante e o desafiado não podem ser o mesmo atleta.'); return;
+  }
   try {
     const res = editId ? await API.updateLuta(editId, payload) : await API.createLuta(payload);
-    if (res.erro) { showAlert(res.erro); return; }
-    showAlert(res.mensagem || 'Salvo!', 'success');
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert(res?.mensagem || 'Confronto salvo com sucesso.', 'success');
     fecharModal(); filtrarLutas();
-  } catch(e) { showAlert(e.message); }
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível salvar o confronto.')); }
 }
 
 async function deletarLuta(id) {
   if (!confirm('Confirma exclusão do confronto?')) return;
-  const res = await API.deleteLuta(id);
-  if (res.erro) { showAlert(res.erro); return; }
-  showAlert('Confronto removido', 'success'); filtrarLutas();
+  try {
+    const res = await API.deleteLuta(id);
+    if (res?.erro) { showAlert(res.erro); return; }
+    showAlert('Confronto removido com sucesso.', 'success'); filtrarLutas();
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível excluir o confronto.')); }
 }
 
 /* ════════════════════════════════════════════════════
@@ -580,18 +652,14 @@ async function deletarLuta(id) {
 async function carregarCampeoes() {
   try {
     const lista = await API.getCampeoes();
-    if (!Array.isArray(lista)) {
-      document.getElementById('tabela-campeoes').innerHTML = `<div class="alert alert-error">${lista.erro||'Erro'}</div>`;
+    if (!Array.isArray(lista) || !lista.length) {
+      document.getElementById('tabela-campeoes').innerHTML = '<div class="empty-state"><div class="icon">—</div><p>Nenhum cinturão registrado</p></div>';
       return;
     }
-    if (!lista.length) {
-      document.getElementById('tabela-campeoes').innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Nenhum cinturão registrado</p></div>';
-      return;
-    }
-    const cols = Object.keys(lista[0]);
+    const cols = Object.keys(lista[0]).filter(c => !/^id(_|$)/i.test(c));
     const rows = lista.map(r => '<tr>' + cols.map(c => `<td>${r[c]??'-'}</td>`).join('') + '</tr>');
-    document.getElementById('tabela-campeoes').innerHTML = tbl(cols, rows);
-  } catch(e) { showAlert('Erro ao carregar cinturões: ' + e.message); }
+    document.getElementById('tabela-campeoes').innerHTML = tbl(cols.map(labelCol), rows);
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar os cinturões.')); }
 }
 
 /* ════════════════════════════════════════════════════
@@ -600,18 +668,14 @@ async function carregarCampeoes() {
 async function carregarAtividade() {
   try {
     const lista = await API.getAtividade();
-    if (!Array.isArray(lista)) {
-      document.getElementById('tabela-atividade').innerHTML = `<div class="alert alert-error">${lista.erro||'Erro'}</div>`;
-      return;
-    }
-    if (!lista.length) {
+    if (!Array.isArray(lista) || !lista.length) {
       document.getElementById('tabela-atividade').innerHTML = '<div class="empty-state"><div class="icon">—</div><p>Sem dados de desempenho</p></div>';
       return;
     }
-    const cols = Object.keys(lista[0]);
+    const cols = Object.keys(lista[0]).filter(c => !/^id(_|$)/i.test(c));
     const rows = lista.map(r => '<tr>' + cols.map(c => `<td>${r[c]??'-'}</td>`).join('') + '</tr>');
-    document.getElementById('tabela-atividade').innerHTML = tbl(cols, rows);
-  } catch(e) { showAlert('Erro ao carregar desempenho: ' + e.message); }
+    document.getElementById('tabela-atividade').innerHTML = tbl(cols.map(labelCol), rows);
+  } catch(e) { showAlert(erroApi(e, 'Não foi possível carregar o desempenho.')); }
 }
 
 /* ════════════════════════════════════════════════════
@@ -633,7 +697,6 @@ async function showConsulta(tipo) {
     const fnMap = {
       'lutadores-por-divisao':   API.getLutadoresPorDivisao,
       'lutas-titulo':            API.getLutasTitulo,
-      'divisoes-sem-cinturao':   API.getDivisoesSemCinturao,
       'lutadores-acima-media':   API.getLutadoresAcimaDaMedia,
     };
     const lista = await fnMap[tipo]();
@@ -641,30 +704,10 @@ async function showConsulta(tipo) {
       el.innerHTML = '<div class="empty-state"><div class="icon">—</div><p>Nenhum resultado</p></div>';
       return;
     }
-    const cols = Object.keys(lista[0]);
+    const cols = Object.keys(lista[0]).filter(c => !/^id(_|$)/i.test(c));
     const rows = lista.map(r => '<tr>' + cols.map(c => `<td>${r[c]??'-'}</td>`).join('') + '</tr>');
-    el.innerHTML = tbl(cols, rows);
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
-}
-
-/* ════════════════════════════════════════════════════
-   HISTÓRICO (logs)
-════════════════════════════════════════════════════ */
-async function carregarLogs() {
-  try {
-    const lista = await API.getLogsCinturao();
-    if (!Array.isArray(lista)) {
-      document.getElementById('tabela-logs').innerHTML = `<div class="alert alert-error">${lista.erro||'Erro'}</div>`;
-      return;
-    }
-    if (!lista.length) {
-      document.getElementById('tabela-logs').innerHTML = '<div class="empty-state"><div class="icon">—</div><p>Nenhum registro no histórico</p></div>';
-      return;
-    }
-    const cols = Object.keys(lista[0]);
-    const rows = lista.map(r => '<tr>' + cols.map(c => `<td>${r[c]??'-'}</td>`).join('') + '</tr>');
-    document.getElementById('tabela-logs').innerHTML = tbl(cols, rows);
-  } catch(e) { showAlert('Erro ao carregar histórico: ' + e.message); }
+    el.innerHTML = tbl(cols.map(labelCol), rows);
+  } catch(e) { el.innerHTML = `<div class="alert alert-error">${erroApi(e, 'Não foi possível carregar a consulta.')}</div>`; }
 }
 
 /* ════════════════════════════════════════════════════
@@ -693,7 +736,6 @@ const loaders = {
   campeoes:  carregarCampeoes,
   atividade: carregarAtividade,
   consultas: carregarConsultas,
-  logs:      carregarLogs,
 };
 
 /* ════════════════════════════════════════════════════
