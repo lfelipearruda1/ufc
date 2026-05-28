@@ -69,12 +69,6 @@
       </svg>
       Estatísticas
     </div>
-    <div class="nav-item" data-section="logs">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/>
-      </svg>
-      Histórico
-    </div>
   </nav>
 </aside>
 
@@ -85,10 +79,10 @@
   </div>
 
   <div class="content">
-    <div id="alert-box" class="alert" style="display:none;"></div>
 
     <!-- ── Dashboard ─────────────────────────────── -->
     <section id="section-dashboard" class="section">
+      <!-- 1º — KPIs -->
       <div class="kpi-row">
         <div class="kpi-card">
           <div class="kpi-value" id="kpi-atletas">—</div>
@@ -112,34 +106,12 @@
         </div>
       </div>
 
-      <div class="charts-row-2">
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-heading">
-              <span class="chart-title">Atletas por Divisão</span>
-              <span class="chart-sub">Distribuição por categoria de peso</span>
-            </div>
-          </div>
-          <p class="chart-desc">Mostra quantos atletas estão cadastrados em cada divisão de peso. A linha tracejada vermelha indica a média (μ) entre as divisões.</p>
-          <div class="chart-body"><div id="chart-bar-div"></div></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-heading">
-              <span class="chart-title">Perfil do Plantel</span>
-              <span class="chart-sub">Composição por classificação</span>
-            </div>
-          </div>
-          <p class="chart-desc">Proporção de atletas em cada nível de experiência: Elite, Experiente, Promessa e Estreante. O número central é o total de atletas.</p>
-          <div class="chart-body"><div id="chart-donut-class"></div></div>
-        </div>
-      </div>
-
-      <div class="chart-card">
+      <!-- 2º — Gráfico principal -->
+      <div class="chart-card chart-card--hero">
         <div class="chart-header">
           <div class="chart-heading">
-            <span class="chart-title">Eventos por Período</span>
-            <span class="chart-sub">Tendência histórica de cards</span>
+            <h2 class="chart-title">Eventos por Período</h2>
+            <p class="chart-desc">Quantidade de eventos realizados por mês.</p>
           </div>
           <div class="chart-filters">
             <button class="filter-btn active" data-period="all">Tudo</button>
@@ -147,30 +119,42 @@
             <button class="filter-btn" data-period="6m">6M</button>
           </div>
         </div>
-        <p class="chart-desc">Quantidade de eventos (cards) realizados em cada mês. A área sombreada destaca o volume; a linha tracejada mostra a tendência (alta, queda ou estável).</p>
-        <div class="chart-body"><div id="chart-line-eventos"></div></div>
+        <div class="chart-body"><div id="chart-line-eventos" class="line-chart-host"></div></div>
       </div>
 
+      <!-- 3º — Rankings e composição -->
       <div class="charts-row-2">
         <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-heading">
-              <span class="chart-title">Métodos de Finalização</span>
-              <span class="chart-sub">Como os confrontos terminam</span>
-            </div>
+          <div class="chart-heading">
+            <h2 class="chart-title">Top Atletas</h2>
+            <p class="chart-desc">Maiores cartéis de vitórias no plantel.</p>
           </div>
-          <p class="chart-desc">Frequência relativa de cada forma de encerramento de luta (nocaute, finalização, decisão etc.) entre todos os confrontos registrados.</p>
-          <div class="chart-body"><div id="chart-radar-metodos"></div></div>
+          <div class="chart-body"><div id="chart-hbar-atletas"></div></div>
         </div>
         <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-heading">
-              <span class="chart-title">Top Atletas</span>
-              <span class="chart-sub">Ranking por vitórias no cartel</span>
-            </div>
+          <div class="chart-heading">
+            <h2 class="chart-title">Perfil do Plantel</h2>
+            <p class="chart-desc">Distribuição dos atletas por experiência.</p>
           </div>
-          <p class="chart-desc">Os 10 atletas com mais vitórias registradas no cartel (formato V-D-E). Barras mais longas = mais vitórias; a linha tracejada marca a média do grupo.</p>
-          <div class="chart-body"><div id="chart-hbar-atletas"></div></div>
+          <div class="chart-body"><div id="chart-donut-class"></div></div>
+        </div>
+      </div>
+
+      <!-- 4º — Detalhes -->
+      <div class="charts-row-2">
+        <div class="chart-card">
+          <div class="chart-heading">
+            <h2 class="chart-title">Atletas por Divisão</h2>
+            <p class="chart-desc">Quantos atletas existem em cada categoria de peso.</p>
+          </div>
+          <div class="chart-body"><div id="chart-bar-div"></div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-heading">
+            <h2 class="chart-title">Métodos de Finalização</h2>
+            <p class="chart-desc">Como os confrontos terminam com mais frequência.</p>
+          </div>
+          <div class="chart-body"><div id="chart-metodos"></div></div>
         </div>
       </div>
     </section>
@@ -248,6 +232,19 @@
       <div id="consulta-resultado"></div>
     </section>
 
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<div id="confirm-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-titulo">
+  <div class="modal modal-confirm">
+    <h3 id="confirm-titulo">Confirmar ação</h3>
+    <p id="confirm-mensagem" class="confirm-mensagem"></p>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" id="confirm-cancelar">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="confirm-ok">Confirmar</button>
+    </div>
   </div>
 </div>
 

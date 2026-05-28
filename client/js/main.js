@@ -35,6 +35,32 @@ const MOCK_ATLETAS = [
   {label:'R. Whittaker',value:14},{label:'S. Miocic',value:13}
 ];
 
+const MESES_CURTOS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function parseDataEvento(str) {
+  if (!str) return null;
+  const s = String(str).trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return { key: `${m[1]}-${m[2]}`, label: `${MESES_CURTOS[+m[2] - 1]}/${m[1].slice(-2)}` };
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) {
+    const mo = String(+m[2]).padStart(2, '0');
+    return { key: `${m[3]}-${mo}`, label: `${MESES_CURTOS[+m[2] - 1]}/${String(m[3]).slice(-2)}` };
+  }
+  return null;
+}
+
+function agruparEventosPorMes(cards) {
+  const map = {};
+  cards.forEach(c => {
+    const p = parseDataEvento(c.data);
+    if (!p) return;
+    if (!map[p.key]) map[p.key] = { label: p.label, value: 0, key: p.key };
+    map[p.key].value++;
+  });
+  return Object.values(map).sort((a, b) => a.key.localeCompare(b.key));
+}
+
 /* ── Dashboard ─────────────────────────────────────── */
 async function carregarDashboard() {
   let useMock = false;
@@ -84,22 +110,15 @@ async function carregarDashboard() {
     {centerLabel: lut.length, centerSub:'atletas'});
 
   // Chart 3: line — eventos por período
-  const evtMap = {};
-  crd.forEach(c => {
-    if(c.data) {
-      const m = c.data.substring(5,7)+'/'+c.data.substring(2,4);
-      evtMap[m] = (evtMap[m]||0)+1;
-    }
-  });
-  const evtData = Object.entries(evtMap).map(([label,value])=>({label,value}));
+  const evtData = agruparEventosPorMes(crd);
   _eventosFull = evtData.length ? evtData : MOCK_EVENTOS_ALL;
   Charts.line(document.getElementById('chart-line-eventos'), _eventosFull);
 
-  // Chart 4: radar — métodos
+  // Chart 4: barras — métodos de finalização
   const metMap = {};
   lts.forEach(l => { metMap[l.metodo] = (metMap[l.metodo]||0)+1; });
   const metData = Object.entries(metMap).map(([label,value])=>({label,value}));
-  Charts.radar(document.getElementById('chart-radar-metodos'), metData.length ? metData : MOCK_METODOS);
+  Charts.segments(document.getElementById('chart-metodos'), metData.length ? metData : MOCK_METODOS);
 
   // Chart 5: hbar — top atletas por vitórias
   const vitData = lut.map(l => {
@@ -121,7 +140,7 @@ function renderDashboardMock() {
   Charts.bar(document.getElementById('chart-bar-div'), MOCK_DIV);
   Charts.donut(document.getElementById('chart-donut-class'), MOCK_CLASS, {centerLabel:54, centerSub:'atletas'});
   Charts.line(document.getElementById('chart-line-eventos'), MOCK_EVENTOS_ALL);
-  Charts.radar(document.getElementById('chart-radar-metodos'), MOCK_METODOS);
+  Charts.segments(document.getElementById('chart-metodos'), MOCK_METODOS);
   Charts.hbar(document.getElementById('chart-hbar-atletas'), MOCK_ATLETAS);
 }
 
@@ -225,12 +244,79 @@ function tbl(headers, rows) {
   </table></div>`;
 }
 
+const TOAST_ICONS = {
+  error: '<svg class="toast-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11h.01"/></svg>',
+  success: '<svg class="toast-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5.5 8l2 2 3-3.5"/></svg>',
+  info: '<svg class="toast-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5h.01"/></svg>',
+};
+
+function showToast(msg, tipo = 'error', duracao = 4500) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${tipo}`;
+  toast.innerHTML = `${TOAST_ICONS[tipo] || TOAST_ICONS.info}<span class="toast-body"></span><button type="button" class="toast-close" aria-label="Fechar">&times;</button>`;
+  toast.querySelector('.toast-body').textContent = msg;
+
+  const fechar = () => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-6px)';
+    toast.style.transition = 'opacity 0.15s, transform 0.15s';
+    setTimeout(() => toast.remove(), 150);
+  };
+
+  toast.querySelector('.toast-close').addEventListener('click', fechar);
+  container.appendChild(toast);
+  if (duracao > 0) setTimeout(fechar, duracao);
+}
+
 function showAlert(msg, tipo = 'error') {
-  const el = document.getElementById('alert-box');
-  el.className = `alert alert-${tipo}`;
-  el.textContent = msg;
-  el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 4000);
+  showToast(msg, tipo);
+}
+
+let _confirmResolver = null;
+
+function showConfirm(mensagem, opts = {}) {
+  const {
+    titulo = 'Confirmar ação',
+    confirmar = 'Confirmar',
+    cancelar = 'Cancelar',
+    perigo = false,
+  } = opts;
+
+  return new Promise(resolve => {
+    if (_confirmResolver) _confirmResolver(false);
+
+    const overlay = document.getElementById('confirm-overlay');
+    const btnOk = document.getElementById('confirm-ok');
+    const btnCancel = document.getElementById('confirm-cancelar');
+
+    document.getElementById('confirm-titulo').textContent = titulo;
+    document.getElementById('confirm-mensagem').textContent = mensagem;
+    btnOk.textContent = confirmar;
+    btnCancel.textContent = cancelar;
+    btnOk.className = perigo ? 'btn btn-danger' : 'btn btn-primary';
+
+    const finalizar = (resultado) => {
+      overlay.classList.add('hidden');
+      document.removeEventListener('keydown', onKey);
+      _confirmResolver = null;
+      resolve(resultado);
+    };
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') finalizar(false);
+      if (e.key === 'Enter') finalizar(true);
+    };
+
+    _confirmResolver = finalizar;
+    btnOk.onclick = () => finalizar(true);
+    btnCancel.onclick = () => finalizar(false);
+    overlay.onclick = (e) => { if (e.target === overlay) finalizar(false); };
+
+    overlay.classList.remove('hidden');
+    document.addEventListener('keydown', onKey);
+    btnCancel.focus();
+  });
 }
 
 /* ── Modal ─────────────────────────────────────────── */
@@ -241,7 +327,11 @@ function fecharModal() {
   document.getElementById('modal-overlay').classList.add('hidden');
   editId = null; modalTipo = null;
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!document.getElementById('confirm-overlay').classList.contains('hidden')) return;
+  fecharModal();
+});
 
 /* ════════════════════════════════════════════════════
    ATLETAS (lutadores)
@@ -338,7 +428,12 @@ async function salvarLutador() {
 }
 
 async function deletarLutador(id) {
-  if (!confirm('Confirma exclusão do atleta?')) return;
+  const ok = await showConfirm('Esta ação não pode ser desfeita. Deseja excluir este atleta?', {
+    titulo: 'Excluir atleta',
+    confirmar: 'Excluir',
+    perigo: true,
+  });
+  if (!ok) return;
   try {
     const res = await API.deleteLutador(id);
     if (res?.erro) { showAlert(res.erro); return; }
@@ -429,7 +524,12 @@ async function salvarDivisao() {
 }
 
 async function deletarDivisao(id) {
-  if (!confirm('Confirma exclusão da divisão?')) return;
+  const ok = await showConfirm('Esta ação não pode ser desfeita. Deseja excluir esta divisão?', {
+    titulo: 'Excluir divisão',
+    confirmar: 'Excluir',
+    perigo: true,
+  });
+  if (!ok) return;
   try {
     const res = await API.deleteDivisao(id);
     if (res?.erro) { showAlert(res.erro); return; }
@@ -505,7 +605,12 @@ async function salvarCard() {
 }
 
 async function deletarCard(id) {
-  if (!confirm('Confirma exclusão do evento?')) return;
+  const ok = await showConfirm('Esta ação não pode ser desfeita. Deseja excluir este evento?', {
+    titulo: 'Excluir evento',
+    confirmar: 'Excluir',
+    perigo: true,
+  });
+  if (!ok) return;
   try {
     const res = await API.deleteCard(id);
     if (res?.erro) { showAlert(res.erro); return; }
@@ -638,7 +743,12 @@ async function salvarLuta() {
 }
 
 async function deletarLuta(id) {
-  if (!confirm('Confirma exclusão do confronto?')) return;
+  const ok = await showConfirm('Esta ação não pode ser desfeita. Deseja excluir este confronto?', {
+    titulo: 'Excluir confronto',
+    confirmar: 'Excluir',
+    perigo: true,
+  });
+  if (!ok) return;
   try {
     const res = await API.deleteLuta(id);
     if (res?.erro) { showAlert(res.erro); return; }
@@ -707,7 +817,10 @@ async function showConsulta(tipo) {
     const cols = Object.keys(lista[0]).filter(c => !/^id(_|$)/i.test(c));
     const rows = lista.map(r => '<tr>' + cols.map(c => `<td>${r[c]??'-'}</td>`).join('') + '</tr>');
     el.innerHTML = tbl(cols.map(labelCol), rows);
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${erroApi(e, 'Não foi possível carregar a consulta.')}</div>`; }
+  } catch(e) {
+    showAlert(erroApi(e, 'Não foi possível carregar a consulta.'));
+    el.innerHTML = '<div class="empty-state"><div class="icon">—</div><p>Não foi possível carregar os dados</p></div>';
+  }
 }
 
 /* ════════════════════════════════════════════════════
