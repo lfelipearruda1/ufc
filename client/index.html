@@ -8,50 +8,166 @@
 </head>
 <body>
 
-<!-- ── Sidebar ─────────────────────────────────────── -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    ⚔ UFC MANAGER
-    <span>Sistema de Gerenciamento</span>
+    <div class="logo-name">UFC <span class="logo-red">Manager</span></div>
+    <div class="logo-sub">Sistema de Gestão</div>
   </div>
   <nav>
-    <div class="nav-group">
-      <div class="nav-label">CRUD</div>
-      <div class="nav-item" data-section="lutadores"><span class="nav-icon">🥊</span> Lutadores</div>
-      <div class="nav-item" data-section="divisoes"><span class="nav-icon">⚖</span> Divisões</div>
-      <div class="nav-item" data-section="cards"><span class="nav-icon">📅</span> Cards</div>
-      <div class="nav-item" data-section="lutas"><span class="nav-icon">🔥</span> Lutas</div>
+    <div class="nav-item active" data-section="dashboard">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/>
+        <rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/>
+      </svg>
+      Painel
     </div>
-    <div class="nav-group">
-      <div class="nav-label">VIEWS</div>
-      <div class="nav-item" data-section="campeoes"><span class="nav-icon">🏆</span> Campeões</div>
-      <div class="nav-item" data-section="atividade"><span class="nav-icon">📊</span> Atividade</div>
+    <div class="nav-divider"></div>
+    <div class="nav-item" data-section="lutadores">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/>
+      </svg>
+      Atletas
     </div>
-    <div class="nav-group">
-      <div class="nav-label">ANÁLISES</div>
-      <div class="nav-item" data-section="consultas"><span class="nav-icon">🔍</span> Consultas</div>
-      <div class="nav-item" data-section="logs"><span class="nav-icon">📋</span> Logs</div>
+    <div class="nav-item" data-section="divisoes">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M8 2L14 5v6L8 14 2 11V5z"/>
+      </svg>
+      Divisões
+    </div>
+    <div class="nav-item" data-section="cards">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="2" y="3" width="12" height="11" rx="1"/>
+        <path d="M5 1v4M11 1v4M2 7h12"/>
+      </svg>
+      Eventos
+    </div>
+    <div class="nav-item" data-section="lutas">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M2 14L14 2M10 2l4 4M2 10l4 4"/>
+      </svg>
+      Confrontos
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-item" data-section="campeoes">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M8 1l1.8 3.8 4.2.6-3 3 .7 4.2L8 11l-3.7 1.6.7-4.2-3-3 4.2-.6z"/>
+      </svg>
+      Cinturões
+    </div>
+    <div class="nav-item" data-section="atividade">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M2 10l3-3 3 3 3-4 3 2"/>
+      </svg>
+      Desempenho
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-item" data-section="consultas">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="2" y="9" width="3" height="5" rx="1"/>
+        <rect x="6.5" y="6" width="3" height="8" rx="1"/>
+        <rect x="11" y="3" width="3" height="11" rx="1"/>
+      </svg>
+      Estatísticas
+    </div>
+    <div class="nav-item" data-section="logs">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/>
+      </svg>
+      Histórico
     </div>
   </nav>
 </aside>
 
-<!-- ── Main ────────────────────────────────────────── -->
 <div class="main">
   <div class="topbar">
-    <span id="topbar-title" class="topbar-title">Lutadores</span>
+    <span id="topbar-title" class="topbar-title">Painel</span>
+    <span class="topbar-time" id="topbar-time"></span>
   </div>
 
   <div class="content">
     <div id="alert-box" class="alert" style="display:none;"></div>
 
-    <!-- ── Lutadores ─────────────────────────────── -->
+    <!-- ── Dashboard ─────────────────────────────── -->
+    <section id="section-dashboard" class="section">
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpi-atletas">—</div>
+          <div class="kpi-label">Atletas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpi-divisoes">—</div>
+          <div class="kpi-label">Divisões</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpi-eventos">—</div>
+          <div class="kpi-label">Eventos</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpi-confrontos">—</div>
+          <div class="kpi-label">Confrontos</div>
+        </div>
+        <div class="kpi-card kpi-accent">
+          <div class="kpi-value" id="kpi-cinturoes">—</div>
+          <div class="kpi-label">Cinturões</div>
+        </div>
+      </div>
+
+      <div class="charts-row-2">
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Atletas por Divisão</span>
+            <span class="chart-sub">Distribuição</span>
+          </div>
+          <div id="chart-bar-div"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Perfil do Plantel</span>
+            <span class="chart-sub">Composição por classificação</span>
+          </div>
+          <div id="chart-donut-class"></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">Eventos por Período</span>
+          <span class="chart-sub">Tendência histórica</span>
+          <div class="chart-filters">
+            <button class="filter-btn active" data-period="all">Tudo</button>
+            <button class="filter-btn" data-period="12m">12M</button>
+            <button class="filter-btn" data-period="6m">6M</button>
+          </div>
+        </div>
+        <div id="chart-line-eventos"></div>
+      </div>
+
+      <div class="charts-row-2">
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Métodos de Finalização</span>
+            <span class="chart-sub">Frequência relativa</span>
+          </div>
+          <div id="chart-radar-metodos"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Top Atletas</span>
+            <span class="chart-sub">Por número de vitórias</span>
+          </div>
+          <div id="chart-hbar-atletas"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Atletas ────────────────────────────────── -->
     <section id="section-lutadores" class="section">
       <div class="section-header">
-        <h2>Lutadores</h2>
-        <button class="btn btn-primary" onclick="abrirModalLutador()">+ Novo Lutador</button>
+        <h2>Atletas</h2>
+        <button class="btn btn-primary" onclick="abrirModalLutador()">+ Novo Atleta</button>
       </div>
       <div class="filters">
-        <label style="color:var(--muted);font-size:.85rem;">Filtrar por divisão:</label>
+        <label>Filtrar por divisão:</label>
         <select id="filtro-divisao" onchange="filtrarLutadores()">
           <option value="">Todas as divisões</option>
         </select>
@@ -68,62 +184,56 @@
       <div id="tabela-divisoes"></div>
     </section>
 
-    <!-- ── Cards ─────────────────────────────────── -->
+    <!-- ── Eventos ───────────────────────────────── -->
     <section id="section-cards" class="section">
       <div class="section-header">
-        <h2>Cards</h2>
-        <button class="btn btn-primary" onclick="abrirModalCard()">+ Novo Card</button>
+        <h2>Eventos</h2>
+        <button class="btn btn-primary" onclick="abrirModalCard()">+ Novo Evento</button>
       </div>
       <div id="tabela-cards"></div>
     </section>
 
-    <!-- ── Lutas ──────────────────────────────────── -->
+    <!-- ── Confrontos ────────────────────────────── -->
     <section id="section-lutas" class="section">
       <div class="section-header">
-        <h2>Lutas</h2>
-        <button class="btn btn-primary" onclick="abrirModalLuta()">+ Nova Luta</button>
+        <h2>Confrontos</h2>
+        <button class="btn btn-primary" onclick="abrirModalLuta()">+ Novo Confronto</button>
       </div>
       <div class="filters">
-        <label style="color:var(--muted);font-size:.85rem;">Filtrar por card:</label>
+        <label>Filtrar por evento:</label>
         <select id="filtro-card">
-          <option value="">Todos os cards</option>
+          <option value="">Todos os eventos</option>
         </select>
       </div>
       <div id="tabela-lutas"></div>
     </section>
 
-    <!-- ── Campeões ───────────────────────────────── -->
+    <!-- ── Cinturões ─────────────────────────────── -->
     <section id="section-campeoes" class="section">
       <div class="section-header">
-        <h2>Campeões Atuais</h2>
+        <h2>Cinturões em Disputa</h2>
         <button class="btn btn-ghost" onclick="carregarCampeoes()">↺ Atualizar</button>
       </div>
-      <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px;">
-        Fonte: <code>vw_cinturoes_em_disputa</code>
-      </p>
       <div id="tabela-campeoes"></div>
     </section>
 
-    <!-- ── Atividade ──────────────────────────────── -->
+    <!-- ── Desempenho ────────────────────────────── -->
     <section id="section-atividade" class="section">
       <div class="section-header">
-        <h2>Atividade dos Lutadores</h2>
+        <h2>Desempenho dos Atletas</h2>
         <button class="btn btn-ghost" onclick="carregarAtividade()">↺ Atualizar</button>
       </div>
-      <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px;">
-        Fonte: <code>vw_lutadores_atividade</code>
-      </p>
       <div id="tabela-atividade"></div>
     </section>
 
-    <!-- ── Consultas ──────────────────────────────── -->
+    <!-- ── Estatísticas ──────────────────────────── -->
     <section id="section-consultas" class="section">
       <div class="section-header">
-        <h2>Consultas SQL</h2>
+        <h2>Estatísticas</h2>
       </div>
       <div class="tabs">
         <button class="tab-btn active" data-consulta="lutadores-por-divisao"
-          onclick="showConsulta('lutadores-por-divisao')">Lutadores por Divisão</button>
+          onclick="showConsulta('lutadores-por-divisao')">Atletas por Divisão</button>
         <button class="tab-btn" data-consulta="lutas-titulo"
           onclick="showConsulta('lutas-titulo')">Lutas de Título</button>
         <button class="tab-btn" data-consulta="divisoes-sem-cinturao"
@@ -134,22 +244,18 @@
       <div id="consulta-resultado"></div>
     </section>
 
-    <!-- ── Logs ───────────────────────────────────── -->
+    <!-- ── Histórico ─────────────────────────────── -->
     <section id="section-logs" class="section">
       <div class="section-header">
-        <h2>Log de Trocas de Cinturão</h2>
+        <h2>Histórico de Cinturões</h2>
         <button class="btn btn-ghost" onclick="carregarLogs()">↺ Atualizar</button>
       </div>
-      <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px;">
-        Preenchido automaticamente pelo trigger <code>trg_log_troca_cinturao</code>
-      </p>
       <div id="tabela-logs"></div>
     </section>
 
-  </div><!-- /content -->
-</div><!-- /main -->
+  </div>
+</div>
 
-<!-- ── Modal ────────────────────────────────────────── -->
 <div id="modal-overlay" class="modal-overlay hidden" onclick="if(event.target===this)fecharModal()">
   <div class="modal">
     <h3 id="modal-titulo"></h3>
@@ -162,6 +268,7 @@
 </div>
 
 <script src="js/api.js"></script>
+<script src="js/charts.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
