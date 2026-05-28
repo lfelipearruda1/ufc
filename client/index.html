@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UFC Manager</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    ⚔ UFC MANAGER
+    <span>Sistema de Gerenciamento</span>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-label">CRUD</div>
+      <div class="nav-item" data-section="lutadores"><span class="nav-icon">🥊</span> Lutadores</div>
+      <div class="nav-item" data-section="divisoes"><span class="nav-icon">⚖</span> Divisões</div>
+      <div class="nav-item" data-section="cards"><span class="nav-icon">📅</span> Cards</div>
+      <div class="nav-item" data-section="lutas"><span class="nav-icon">🔥</span> Lutas</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">VIEWS</div>
+      <div class="nav-item" data-section="campeoes"><span class="nav-icon">🏆</span> Campeões</div>
+      <div class="nav-item" data-section="atividade"><span class="nav-icon">📊</span> Atividade</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">ANÁLISES</div>
+      <div class="nav-item" data-section="consultas"><span class="nav-icon">🔍</span> Consultas</div>
+      <div class="nav-item" data-section="logs"><span class="nav-icon">📋</span> Logs</div>
+    </div>
+  </nav>
+</aside>
+
+<!-- ── Main ────────────────────────────────────────── -->
+<div class="main">
+  <div class="topbar">
+    <span id="topbar-title" class="topbar-title">Lutadores</span>
+  </div>
+
+  <div class="content">
+    <div id="alert-box" class="alert" style="display:none;"></div>
+
+    <!-- ── Lutadores ─────────────────────────────── -->
+    <section id="section-lutadores" class="section">
+      <div class="section-header">
+        <h2>Lutadores</h2>
+        <button class="btn btn-primary" onclick="abrirModalLutador()">+ Novo Lutador</button>
+      </div>
+      <div class="filters">
+        <label style="color:var(--muted);font-size:.85rem;">Filtrar por divisão:</label>
+        <select id="filtro-divisao" onchange="filtrarLutadores()">
+          <option value="">Todas as divisões</option>
+        </select>
+      </div>
+      <div id="tabela-lutadores"></div>
+    </section>
+
+    <!-- ── Divisões ───────────────────────────────── -->
+    <section id="section-divisoes" class="section">
+      <div class="section-header">
+        <h2>Divisões</h2>
+        <button class="btn btn-primary" onclick="abrirModalDivisao()">+ Nova Divisão</button>
+      </div>
+      <div id="tabela-divisoes"></div>
+    </section>
+
+    <!-- ── Cards ─────────────────────────────────── -->
+    <section id="section-cards" class="section">
+      <div class="section-header">
+        <h2>Cards</h2>
+        <button class="btn btn-primary" onclick="abrirModalCard()">+ Novo Card</button>
+      </div>
+      <div id="tabela-cards"></div>
+    </section>
+
+    <!-- ── Lutas ──────────────────────────────────── -->
+    <section id="section-lutas" class="section">
+      <div class="section-header">
+        <h2>Lutas</h2>
+        <button class="btn btn-primary" onclick="abrirModalLuta()">+ Nova Luta</button>
+      </div>
+      <div class="filters">
+        <label style="color:var(--muted);font-size:.85rem;">Filtrar por card:</label>
+        <select id="filtro-card">
+          <option value="">Todos os cards</option>
+        </select>
+      </div>
+      <div id="tabela-lutas"></div>
+    </section>
+
+    <!-- ── Campeões ───────────────────────────────── -->
+    <section id="section-campeoes" class="section">
+      <div class="section-header">
+        <h2>Campeões Atuais</h2>
+        <button class="btn btn-ghost" onclick="carregarCampeoes()">↺ Atualizar</button>
+      </div>
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px;">
+        Fonte: <code>vw_cinturoes_em_disputa</code>
+      </p>
+      <div id="tabela-campeoes"></div>
+    </section>
+
+    <!-- ── Atividade ──────────────────────────────── -->
+    <section id="section-atividade" class="section">
+      <div class="section-header">
+        <h2>Atividade dos Lutadores</h2>
+        <button class="btn btn-ghost" onclick="carregarAtividade()">↺ Atualizar</button>
+      </div>
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px;">
+        Fonte: <code>vw_lutadores_atividade</code>
+      </p>
+      <div id="tabela-atividade"></div>
+    </section>
+
+    <!-- ── Consultas ──────────────────────────────── -->
+    <section id="section-consultas" class="section">
+      <div class="section-header">
+        <h2>Consultas SQL</h2>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-consulta="lutadores-por-divisao"
+          onclick="showConsulta('lutadores-por-divisao')">Lutadores por Divisão</button>
+        <button class="tab-btn" data-consulta="lutas-titulo"
+          onclick="showConsulta('lutas-titulo')">Lutas de Título</button>
+        <button class="tab-btn" data-consulta="divisoes-sem-cinturao"
+          onclick="showConsulta('divisoes-sem-cinturao')">Divisões sem Cinturão</button>
+        <button class="tab-btn" data-consulta="lutadores-acima-media"
+          onclick="showConsulta('lutadores-acima-media')">Acima da Média</button>
+      </div>
+      <div id="consulta-resultado"></div>
+    </section>
+
+    <!-- ── Logs ───────────────────────────────────── -->
+    <section id="section-logs" class="section">
+      <div class="section-header">
+        <h2>Log de Trocas de Cinturão</h2>
+        <button class="btn btn-ghost" onclick="carregarLogs()">↺ Atualizar</button>
+      </div>
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px;">
+        Preenchido automaticamente pelo trigger <code>trg_log_troca_cinturao</code>
+      </p>
+      <div id="tabela-logs"></div>
+    </section>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── Modal ────────────────────────────────────────── -->
+<div id="modal-overlay" class="modal-overlay hidden" onclick="if(event.target===this)fecharModal()">
+  <div class="modal">
+    <h3 id="modal-titulo"></h3>
+    <div id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
