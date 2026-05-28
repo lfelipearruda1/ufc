@@ -132,7 +132,6 @@ O backend espera um banco PostgreSQL chamado **`ufc`** em `localhost:5432`.
 | `card` | Eventos |
 | `cardppv` | Eventos PPV (herança/extensão de card) |
 | `luta` | Confrontos |
-| `log_troca_cinturao` | Log de troca de cinturão (trigger) |
 
 ### Objetos SQL usados pelo código
 
@@ -165,24 +164,28 @@ Substitua `SEU_USUARIO` pelo usuário PostgreSQL da sua máquina (no Mac costuma
 
 ## Configuração da conexão
 
-Edite o arquivo:
+Copie o exemplo e preencha com os dados do seu PostgreSQL:
 
-`server/src/main/java/infra/DatabaseConnection.java`
-
-```java
-private static final String URL = "jdbc:postgresql://localhost:5432/ufc";
-private static final String USER = "SEU_USUARIO_POSTGRES";
-private static final String PASSWORD = "SUA_SENHA";
+```bash
+cd server
+cp .env.example .env
 ```
 
-| Campo | Valor padrão do projeto |
-|-------|-------------------------|
-| Host | `localhost` |
-| Porta | `5432` |
-| Banco | `ufc` |
-| Usuário / senha | **Ajuste para sua máquina** |
+Edite `server/.env`:
 
-Recompile o backend após alterar (`mvn compile` ou `mvn exec:java` na pasta `server/`).
+```env
+DB_URL=jdbc:postgresql://localhost:5432/ufc
+DB_USER=SEU_USUARIO_POSTGRES
+DB_PASSWORD=SUA_SENHA
+```
+
+| Variável | Valor padrão do projeto |
+|----------|-------------------------|
+| `DB_URL` | `jdbc:postgresql://localhost:5432/ufc` |
+| `DB_USER` | Usuário PostgreSQL da sua máquina |
+| `DB_PASSWORD` | Senha do usuário |
+
+O arquivo `.env` não vai para o Git. Variáveis de ambiente do sistema têm prioridade sobre o `.env`.
 
 ---
 
@@ -215,7 +218,7 @@ psql postgres -c "CREATE DATABASE ufc;"
 psql -d ufc -f /caminho/para/seu/schema.sql
 ```
 
-No Mac, o usuário PostgreSQL costuma ser o mesmo do login (`whoami`). Use esse nome em `DatabaseConnection.java`.
+No Mac, o usuário PostgreSQL costuma ser o mesmo do login (`whoami`). Use esse nome em `server/.env`.
 
 ### 3. Subir o backend
 
@@ -289,7 +292,7 @@ No Windows, use em geral:
 - **USER:** `postgres`
 - **PASSWORD:** a definida na instalação
 
-Atualize `DatabaseConnection.java` com esses valores.
+Atualize `server/.env` com esses valores.
 
 Certifique-se de que o serviço PostgreSQL está rodando:
 
@@ -376,7 +379,7 @@ Respostas em JSON; erros no formato `{ "erro": "mensagem" }`. CORS habilitado pa
 | Sintoma | O que verificar |
 |---------|-----------------|
 | `Servidor indisponível` no navegador | Backend rodando? `curl http://localhost:8080/api/divisoes` |
-| Erro de conexão JDBC / `Connection refused` | PostgreSQL ativo? Banco `ufc` existe? Usuário/senha em `DatabaseConnection.java`? |
+| Erro de conexão JDBC / `Connection refused` | PostgreSQL ativo? Banco `ufc` existe? `server/.env` configurado? |
 | `Driver PostgreSQL não encontrado` | Rode `mvn compile` em `server/` (dependência no `pom.xml`) |
 | `relation "lutador" does not exist` | Schema não foi aplicado no banco `ufc` |
 | `function fn_classificar_lutador does not exist` | Funções/views/procedures do enunciado não foram criadas |
