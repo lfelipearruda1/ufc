@@ -1,74 +1,83 @@
 const BASE = 'http://localhost:8080';
 
-function _apiErr(msg) {
-  const e = new Error(msg);
-  e.fromApi = true;
-  return e;
+function criarErroApi(mensagem) {
+  const erro = new Error(mensagem);
+  erro.fromApi = true;
+  return erro;
 }
 
-async function req(method, path, body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (body !== undefined) opts.body = JSON.stringify(body);
+async function requisicao(metodo, caminho, corpo) {
+  const opcoes = { method: metodo, headers: { 'Content-Type': 'application/json' } };
+  if (corpo !== undefined) opcoes.body = JSON.stringify(corpo);
 
-  let res;
+  let resposta;
   try {
-    res = await fetch(BASE + path, opts);
+    resposta = await fetch(BASE + caminho, opcoes);
   } catch {
-    throw _apiErr('Servidor indisponível. Verifique se o servidor está em execução.');
+    throw criarErroApi('Servidor indisponível. Verifique se o servidor está em execução.');
   }
 
-  const text = await res.text();
-  let data;
-  try { data = JSON.parse(text); } catch {
-    throw _apiErr(res.ok ? 'Resposta inesperada do servidor.' : `Erro ${res.status}.`);
+  const texto = await resposta.text();
+  let dados;
+  try {
+    dados = JSON.parse(texto);
+  } catch {
+    throw criarErroApi(resposta.ok ? 'Resposta inesperada do servidor.' : `Erro ${resposta.status}.`);
   }
 
-  if (!res.ok) {
-    throw _apiErr(data?.erro || data?.mensagem || `Erro ${res.status}.`);
+  if (!resposta.ok) {
+    throw criarErroApi(dados?.erro || dados?.mensagem || `Erro ${resposta.status}.`);
   }
 
-  return data;
+  return dados;
 }
 
-// ── Lutadores ──────────────────────────────
 const API = {
-  getLutadores:    (divisao) => req('GET', '/api/lutadores' + (divisao ? `?divisao=${divisao}` : '')),
-  getLutador:      (id)      => req('GET', `/api/lutadores/${id}`),
-  createLutador:   (d)       => req('POST', '/api/lutadores', d),
-  updateLutador:   (id, d)   => req('PUT', `/api/lutadores/${id}`, d),
-  deleteLutador:   (id)      => req('DELETE', `/api/lutadores/${id}`),
-  transferirLutador: (id, idDivisao) => req('POST', `/api/lutadores/${id}/transferir`, { id_divisao: idDivisao }),
+  getLutadores: (idDivisao) =>
+    requisicao('GET', '/api/lutadores' + (idDivisao ? `?divisao=${idDivisao}` : '')),
+  getLutador: (id) => requisicao('GET', `/api/lutadores/${id}`),
+  createLutador: (dados) => requisicao('POST', '/api/lutadores', dados),
+  updateLutador: (id, dados) => requisicao('PUT', `/api/lutadores/${id}`, dados),
+  deleteLutador: (id) => requisicao('DELETE', `/api/lutadores/${id}`),
+  transferirLutador: (id, idDivisao) =>
+    requisicao('POST', `/api/lutadores/${id}/transferir`, { id_divisao: idDivisao }),
 
-  // ── Divisões ──────────────────────────────
-  getDivisoes:  ()     => req('GET', '/api/divisoes'),
-  getDivisao:   (id)   => req('GET', `/api/divisoes/${id}`),
-  createDivisao: (d)   => req('POST', '/api/divisoes', d),
-  updateDivisao: (id, d) => req('PUT', `/api/divisoes/${id}`, d),
-  deleteDivisao: (id)  => req('DELETE', `/api/divisoes/${id}`),
+  getDivisoes: () => requisicao('GET', '/api/divisoes'),
+  getDivisao: (id) => requisicao('GET', `/api/divisoes/${id}`),
+  createDivisao: (dados) => requisicao('POST', '/api/divisoes', dados),
+  updateDivisao: (id, dados) => requisicao('PUT', `/api/divisoes/${id}`, dados),
+  deleteDivisao: (id) => requisicao('DELETE', `/api/divisoes/${id}`),
+  recalcularCarteis: (id) => requisicao('POST', `/api/divisoes/${id}/recalcular`),
 
-  // ── Cards ─────────────────────────────────
-  getCards:    ()     => req('GET', '/api/cards'),
-  getCard:     (id)   => req('GET', `/api/cards/${id}`),
-  createCard:  (d)    => req('POST', '/api/cards', d),
-  updateCard:  (id, d) => req('PUT', `/api/cards/${id}`, d),
-  deleteCard:  (id)   => req('DELETE', `/api/cards/${id}`),
+  getCards: () => requisicao('GET', '/api/cards'),
+  getCard: (id) => requisicao('GET', `/api/cards/${id}`),
+  createCard: (dados) => requisicao('POST', '/api/cards', dados),
+  updateCard: (id, dados) => requisicao('PUT', `/api/cards/${id}`, dados),
+  deleteCard: (id) => requisicao('DELETE', `/api/cards/${id}`),
 
-  // ── Lutas ─────────────────────────────────
-  getLutas:    (card) => req('GET', '/api/lutas' + (card ? `?card=${card}` : '')),
-  getLuta:     (id)   => req('GET', `/api/lutas/${id}`),
-  createLuta:  (d)    => req('POST', '/api/lutas', d),
-  updateLuta:  (id, d) => req('PUT', `/api/lutas/${id}`, d),
-  deleteLuta:  (id)   => req('DELETE', `/api/lutas/${id}`),
+  getLutas: (idCard) => requisicao('GET', '/api/lutas' + (idCard ? `?card=${idCard}` : '')),
+  getMetodosLuta: () => requisicao('GET', '/api/lutas/metodos'),
+  getLuta: (id) => requisicao('GET', `/api/lutas/${id}`),
+  createLuta: (dados) => requisicao('POST', '/api/lutas', dados),
+  updateLuta: (id, dados) => requisicao('PUT', `/api/lutas/${id}`, dados),
+  deleteLuta: (id) => requisicao('DELETE', `/api/lutas/${id}`),
 
-  // ── Auxiliares ────────────────────────────
-  getVisibilidades: () => req('GET', '/api/visibilidades'),
+  getVisibilidades: () => requisicao('GET', '/api/visibilidades'),
+  getCinturoes: () => requisicao('GET', '/api/cinturoes'),
 
-  // ── Views ─────────────────────────────────
-  getCampeoes:  () => req('GET', '/api/views/cinturoes'),
-  getAtividade: () => req('GET', '/api/views/atividade'),
+  getCampeoes: () => requisicao('GET', '/api/views/cinturoes'),
+  getAtividade: () => requisicao('GET', '/api/views/atividade'),
 
-  // ── Consultas ─────────────────────────────
-  getLutadoresPorDivisao:   () => req('GET', '/api/consultas/lutadores-por-divisao'),
-  getLutasTitulo:           () => req('GET', '/api/consultas/lutas-titulo'),
-  getLutadoresAcimaDaMedia: () => req('GET', '/api/consultas/lutadores-acima-media'),
+  getLutadoresPorDivisao: (pesoMinimo, minimoAtletas) => {
+    const params = new URLSearchParams();
+    if (pesoMinimo != null && pesoMinimo !== '') params.set('peso_min', pesoMinimo);
+    if (minimoAtletas != null && minimoAtletas !== '') params.set('min_atletas', minimoAtletas);
+    const query = params.toString();
+    return requisicao('GET', '/api/consultas/lutadores-por-divisao' + (query ? `?${query}` : ''));
+  },
+  getLutasTitulo: () => requisicao('GET', '/api/consultas/lutas-titulo'),
+  getLutadoresAcimaDaMedia: (idDivisao) => {
+    const query = idDivisao ? `?divisao=${idDivisao}` : '';
+    return requisicao('GET', `/api/consultas/lutadores-acima-media${query}`);
+  },
 };

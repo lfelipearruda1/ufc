@@ -165,5 +165,57 @@ const Charts = {
     });
 
     el.innerHTML = this._svg(W, H, o);
+  },
+
+  radar(el, data) {
+    if (!data.length) {
+      el.innerHTML = '<div class="no-data">Sem dados</div>';
+      return;
+    }
+    const W = 280, H = 240, cx = 140, cy = 118, raio = 78;
+    const max = Math.max(...data.map(item => item.value), 1);
+    const anguloInicial = -Math.PI / 2;
+    let grade = '';
+    let poligono = '';
+
+    for (let nivel = 1; nivel <= 4; nivel++) {
+      const r = (raio * nivel) / 4;
+      const pontos = data.map((_, indice) => {
+        const angulo = anguloInicial + (indice * 2 * Math.PI) / data.length;
+        return `${(cx + r * Math.cos(angulo)).toFixed(1)},${(cy + r * Math.sin(angulo)).toFixed(1)}`;
+      });
+      grade += `<polygon points="${pontos.join(' ')}" fill="none" stroke="#222" stroke-width="1"/>`;
+    }
+
+    const pontosValor = data.map((item, indice) => {
+      const angulo = anguloInicial + (indice * 2 * Math.PI) / data.length;
+      const distancia = (item.value / max) * raio;
+      return {
+        x: cx + distancia * Math.cos(angulo),
+        y: cy + distancia * Math.sin(angulo),
+        label: item.label,
+        value: item.value,
+      };
+    });
+
+    poligono = pontosValor.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    let eixos = '';
+    let rotulos = '';
+
+    data.forEach((item, indice) => {
+      const angulo = anguloInicial + (indice * 2 * Math.PI) / data.length;
+      const x = cx + raio * Math.cos(angulo);
+      const y = cy + raio * Math.sin(angulo);
+      eixos += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#333" stroke-width="1"/>`;
+      rotulos += `<text x="${(cx + (raio + 16) * Math.cos(angulo)).toFixed(1)}" y="${(cy + (raio + 16) * Math.sin(angulo)).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="#888">${item.label}</text>`;
+    });
+
+    el.innerHTML = this._svg(W, H, `
+      ${grade}
+      ${eixos}
+      <polygon points="${poligono}" fill="#d63031" fill-opacity="0.25" stroke="#d63031" stroke-width="2"/>
+      ${pontosValor.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#d63031"><title>${p.label}: ${p.value.toFixed(2)}</title></circle>`).join('')}
+      ${rotulos}
+    `);
   }
 };

@@ -67,7 +67,7 @@
         <rect x="6.5" y="6" width="3" height="8" rx="1"/>
         <rect x="11" y="3" width="3" height="11" rx="1"/>
       </svg>
-      Estatísticas
+      Consultas
     </div>
   </nav>
 </aside>
@@ -75,14 +75,11 @@
 <div class="main">
   <div class="topbar">
     <span id="topbar-title" class="topbar-title">Painel</span>
-    <span class="topbar-time" id="topbar-time"></span>
   </div>
 
   <div class="content">
 
-    <!-- ── Dashboard ─────────────────────────────── -->
     <section id="section-dashboard" class="section">
-      <!-- 1º — KPIs -->
       <div class="kpi-row">
         <div class="kpi-card">
           <div class="kpi-value" id="kpi-atletas">—</div>
@@ -106,7 +103,6 @@
         </div>
       </div>
 
-      <!-- 2º — Gráfico principal -->
       <div class="chart-card chart-card--hero">
         <div class="chart-header">
           <div class="chart-heading">
@@ -122,7 +118,6 @@
         <div class="chart-body"><div id="chart-line-eventos" class="line-chart-host"></div></div>
       </div>
 
-      <!-- 3º — Rankings e composição -->
       <div class="charts-row-2">
         <div class="chart-card">
           <div class="chart-heading">
@@ -140,7 +135,6 @@
         </div>
       </div>
 
-      <!-- 4º — Detalhes -->
       <div class="charts-row-2">
         <div class="chart-card">
           <div class="chart-heading">
@@ -157,9 +151,9 @@
           <div class="chart-body"><div id="chart-metodos"></div></div>
         </div>
       </div>
+
     </section>
 
-    <!-- ── Atletas ────────────────────────────────── -->
     <section id="section-lutadores" class="section">
       <div class="section-header">
         <button class="btn btn-primary" onclick="abrirModalLutador()">+ Novo Atleta</button>
@@ -173,7 +167,6 @@
       <div id="tabela-lutadores"></div>
     </section>
 
-    <!-- ── Divisões ───────────────────────────────── -->
     <section id="section-divisoes" class="section">
       <div class="section-header">
         <button class="btn btn-primary" onclick="abrirModalDivisao()">+ Nova Divisão</button>
@@ -181,7 +174,6 @@
       <div id="tabela-divisoes"></div>
     </section>
 
-    <!-- ── Eventos ───────────────────────────────── -->
     <section id="section-cards" class="section">
       <div class="section-header">
         <button class="btn btn-primary" onclick="abrirModalCard()">+ Novo Evento</button>
@@ -189,7 +181,6 @@
       <div id="tabela-cards"></div>
     </section>
 
-    <!-- ── Confrontos ────────────────────────────── -->
     <section id="section-lutas" class="section">
       <div class="section-header">
         <button class="btn btn-primary" onclick="abrirModalLuta()">+ Novo Confronto</button>
@@ -203,7 +194,6 @@
       <div id="tabela-lutas"></div>
     </section>
 
-    <!-- ── Cinturões ─────────────────────────────── -->
     <section id="section-campeoes" class="section">
       <div class="section-header">
         <button class="btn btn-ghost" onclick="carregarCampeoes()">↺ Atualizar</button>
@@ -211,7 +201,6 @@
       <div id="tabela-campeoes"></div>
     </section>
 
-    <!-- ── Desempenho ────────────────────────────── -->
     <section id="section-atividade" class="section">
       <div class="section-header">
         <button class="btn btn-ghost" onclick="carregarAtividade()">↺ Atualizar</button>
@@ -219,7 +208,6 @@
       <div id="tabela-atividade"></div>
     </section>
 
-    <!-- ── Estatísticas ──────────────────────────── -->
     <section id="section-consultas" class="section">
       <div class="tabs">
         <button class="tab-btn active" data-consulta="lutadores-por-divisao"
@@ -228,6 +216,18 @@
           onclick="showConsulta('lutas-titulo')">Lutas de Título</button>
         <button class="tab-btn" data-consulta="lutadores-acima-media"
           onclick="showConsulta('lutadores-acima-media')">Acima da Média</button>
+      </div>
+      <div id="filtros-consulta-peso" class="filters">
+        <label>Peso mínimo (kg):</label>
+        <input id="filtro-peso-min" type="number" step="0.1" value="70">
+        <label>Mínimo de atletas:</label>
+        <input id="filtro-min-atletas" type="number" min="1" value="3">
+      </div>
+      <div id="filtros-consulta-divisao" class="filters hidden">
+        <label>Filtrar por divisão:</label>
+        <select id="filtro-consulta-divisao">
+          <option value="">Todas as divisões</option>
+        </select>
       </div>
       <div id="consulta-resultado"></div>
     </section>

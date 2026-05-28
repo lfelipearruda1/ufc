@@ -16,6 +16,18 @@ public class ConsultaDAO {
         }
     }
 
+    public String listarCinturoesOpcoes() throws SQLException {
+        String sql =
+            "SELECT ci.id_cinturao, ci.tipo_cinturao, d.nome_divisao " +
+            "FROM cinturao ci JOIN divisao d ON ci.id_divisao = d.id_divisao " +
+            "ORDER BY d.nome_divisao, ci.tipo_cinturao";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return JsonUtil.resultSetToJsonArray(rs);
+        }
+    }
+
     public String listarAtividade() throws SQLException {
         String sql = "SELECT * FROM vw_lutadores_atividade";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -25,18 +37,21 @@ public class ConsultaDAO {
         }
     }
 
-    public String lutadoresPorDivisao() throws SQLException {
+    public String lutadoresPorDivisao(double pesoMinimo, int minimoAtletas) throws SQLException {
         String sql =
             "SELECT d.nome_divisao, COUNT(l.id_lutador) AS total_lutadores " +
             "FROM divisao d JOIN lutador l ON d.id_divisao = l.id_divisao " +
-            "WHERE l.peso > 70 " +
+            "WHERE l.peso > ? " +
             "GROUP BY d.id_divisao, d.nome_divisao " +
-            "HAVING COUNT(l.id_lutador) > 3 " +
+            "HAVING COUNT(l.id_lutador) > ? " +
             "ORDER BY total_lutadores DESC";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            return JsonUtil.resultSetToJsonArray(rs);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, pesoMinimo);
+            ps.setInt(2, minimoAtletas);
+            try (ResultSet rs = ps.executeQuery()) {
+                return JsonUtil.resultSetToJsonArray(rs);
+            }
         }
     }
 
@@ -55,38 +70,19 @@ public class ConsultaDAO {
         }
     }
 
-    public String divisoesSemCinturao() throws SQLException {
-        String sql =
-            "SELECT d.id_divisao, d.nome_divisao, d.peso_min, d.peso_max " +
-            "FROM divisao d LEFT JOIN cinturao ci ON d.id_divisao = ci.id_divisao " +
-            "WHERE ci.id_divisao IS NULL " +
-            "ORDER BY d.nome_divisao";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            return JsonUtil.resultSetToJsonArray(rs);
-        }
-    }
-
-    public String lutadoresAcimaDaMedia() throws SQLException {
+    public String lutadoresAcimaDaMedia(Integer idDivisao) throws SQLException {
         String sql =
             "SELECT l.nome, l.apelido, l.peso, d.nome_divisao " +
             "FROM lutador l JOIN divisao d ON l.id_divisao = d.id_divisao " +
             "WHERE l.peso > (SELECT AVG(l2.peso) FROM lutador l2 WHERE l2.id_divisao = l.id_divisao) " +
+            (idDivisao != null ? "AND l.id_divisao = ? " : "") +
             "ORDER BY d.nome_divisao, l.peso DESC";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            return JsonUtil.resultSetToJsonArray(rs);
-        }
-    }
-
-    public String listarLogsCinturao() throws SQLException {
-        String sql = "SELECT * FROM log_troca_cinturao ORDER BY data_hora DESC";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            return JsonUtil.resultSetToJsonArray(rs);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (idDivisao != null) ps.setInt(1, idDivisao);
+            try (ResultSet rs = ps.executeQuery()) {
+                return JsonUtil.resultSetToJsonArray(rs);
+            }
         }
     }
 

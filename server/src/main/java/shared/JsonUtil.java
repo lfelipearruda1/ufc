@@ -37,7 +37,6 @@ public class JsonUtil {
         return sb.toString();
     }
 
-    /** Converte um ResultSet completo em array JSON, usando os nomes das colunas como chaves. */
     public static String resultSetToJsonArray(ResultSet rs) throws SQLException {
         List<String> items = new ArrayList<>();
         ResultSetMetaData meta = rs.getMetaData();
@@ -70,10 +69,6 @@ public class JsonUtil {
         }
     }
 
-    /**
-     * Faz o parse de um JSON plano (sem aninhamento) para Map<String, String>.
-     * Suporta valores string, número, booleano e null.
-     */
     public static Map<String, String> parseJsonToMap(String json) {
         Map<String, String> result = new LinkedHashMap<>();
         if (json == null || json.trim().isEmpty()) return result;

@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import infra.BaseHandler;
 import shared.JsonUtil;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 public class LutaHandler extends BaseHandler {
@@ -26,7 +27,16 @@ public class LutaHandler extends BaseHandler {
             return;
         }
 
-        boolean temId = partes.length >= 4 && !partes[3].isEmpty();
+        if (path.startsWith("/api/lutas/metodos")) {
+            if ("GET".equals(method)) {
+                responder(exchange, 200, MetodoLuta.listarJson());
+            } else {
+                responder(exchange, 405, JsonUtil.erro("Método não permitido"));
+            }
+            return;
+        }
+
+        boolean temId = partes.length >= 4 && !partes[3].isEmpty() && partes[3].matches("\\d+");
         int id = temId ? Integer.parseInt(partes[3]) : -1;
 
         switch (method) {
@@ -43,6 +53,7 @@ public class LutaHandler extends BaseHandler {
 
             case "POST": {
                 Luta l = parseLuta(JsonUtil.parseJsonToMap(lerBody(exchange)));
+                LutaValidacao.validar(l);
                 boolean ok = dao.inserir(l);
                 responder(exchange, ok ? 201 : 500,
                     ok ? JsonUtil.sucesso("Luta criada") : JsonUtil.erro("Erro ao inserir"));
@@ -53,6 +64,7 @@ public class LutaHandler extends BaseHandler {
                 if (!temId) { responder(exchange, 400, JsonUtil.erro("ID obrigatório")); break; }
                 Luta l = parseLuta(JsonUtil.parseJsonToMap(lerBody(exchange)));
                 l.setIdLuta(id);
+                LutaValidacao.validar(l);
                 boolean ok = dao.atualizar(l);
                 responder(exchange, ok ? 200 : 404,
                     ok ? JsonUtil.sucesso("Luta atualizada") : JsonUtil.erro("Luta não encontrada"));
@@ -81,6 +93,11 @@ public class LutaHandler extends BaseHandler {
         if (d.containsKey("id_desafiado"))    l.setIdDesafiado(Integer.parseInt(d.get("id_desafiado")));
         if (d.containsKey("id_card"))         l.setIdCard(Integer.parseInt(d.get("id_card")));
         if (d.containsKey("id_visibilidade")) l.setIdVisibilidade(Integer.parseInt(d.get("id_visibilidade")));
+        if (d.containsKey("id_cinturao") && d.get("id_cinturao") != null && !d.get("id_cinturao").isEmpty()) {
+            l.setIdCinturao(Integer.parseInt(d.get("id_cinturao")));
+        } else {
+            l.setIdCinturao(null);
+        }
         return l;
     }
 }

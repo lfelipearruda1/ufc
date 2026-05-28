@@ -8,11 +8,6 @@ import shared.JsonUtil;
 
 import java.util.Map;
 
-/**
- * Expõe as stored procedures em /api/procedures/*
- * POST /api/procedures/transferir   → sp_transferir_lutador_divisao
- * POST /api/procedures/recalcular   → sp_recalcular_carteis_divisao
- */
 public class ProcedureHandler extends BaseHandler {
 
     private final LutadorDAO lutadorDAO = new LutadorDAO();

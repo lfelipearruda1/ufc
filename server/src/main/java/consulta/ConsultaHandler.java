@@ -20,18 +20,19 @@ public class ConsultaHandler extends BaseHandler {
 
         if (path.contains("/views/cinturoes")) {
             resultado = dao.listarCinturoes();
+        } else if (path.contains("/cinturoes/opcoes") || path.equals("/api/cinturoes")) {
+            resultado = dao.listarCinturoesOpcoes();
         } else if (path.contains("/views/atividade")) {
             resultado = dao.listarAtividade();
         } else if (path.contains("/consultas/lutadores-por-divisao")) {
-            resultado = dao.lutadoresPorDivisao();
+            double pesoMinimo = parseDoubleParam(exchange, "peso_min", 70);
+            int minimoAtletas = parseIntParam(exchange, "min_atletas", 3);
+            resultado = dao.lutadoresPorDivisao(pesoMinimo, minimoAtletas);
         } else if (path.contains("/consultas/lutas-titulo")) {
             resultado = dao.lutasTitulo();
-        } else if (path.contains("/consultas/divisoes-sem-cinturao")) {
-            resultado = dao.divisoesSemCinturao();
         } else if (path.contains("/consultas/lutadores-acima-media")) {
-            resultado = dao.lutadoresAcimaDaMedia();
-        } else if (path.contains("/logs/cinturao")) {
-            resultado = dao.listarLogsCinturao();
+            Integer idDivisao = parseOptionalIntParam(exchange, "divisao");
+            resultado = dao.lutadoresAcimaDaMedia(idDivisao);
         } else if (path.contains("/cardppv/") && path.contains("/receita-por-pagante")) {
             String[] partes = path.split("/");
             int idCard = Integer.parseInt(partes[3]);
@@ -42,5 +43,53 @@ public class ConsultaHandler extends BaseHandler {
         }
 
         responder(exchange, 200, resultado);
+    }
+
+    private double parseDoubleParam(HttpExchange exchange, String nome, double padrao) {
+        String query = exchange.getRequestURI().getQuery();
+        if (query == null) return padrao;
+        for (String parte : query.split("&")) {
+            String[] kv = parte.split("=", 2);
+            if (kv.length == 2 && nome.equals(kv[0])) {
+                try {
+                    return Double.parseDouble(kv[1]);
+                } catch (NumberFormatException e) {
+                    return padrao;
+                }
+            }
+        }
+        return padrao;
+    }
+
+    private int parseIntParam(HttpExchange exchange, String nome, int padrao) {
+        String query = exchange.getRequestURI().getQuery();
+        if (query == null) return padrao;
+        for (String parte : query.split("&")) {
+            String[] kv = parte.split("=", 2);
+            if (kv.length == 2 && nome.equals(kv[0])) {
+                try {
+                    return Integer.parseInt(kv[1]);
+                } catch (NumberFormatException e) {
+                    return padrao;
+                }
+            }
+        }
+        return padrao;
+    }
+
+    private Integer parseOptionalIntParam(HttpExchange exchange, String nome) {
+        String query = exchange.getRequestURI().getQuery();
+        if (query == null) return null;
+        for (String parte : query.split("&")) {
+            String[] kv = parte.split("=", 2);
+            if (kv.length == 2 && nome.equals(kv[0]) && !kv[1].isEmpty()) {
+                try {
+                    return Integer.parseInt(kv[1]);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 }

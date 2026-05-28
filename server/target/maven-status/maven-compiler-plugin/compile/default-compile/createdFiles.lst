@@ -1,4 +1,6 @@
 card/CardHandler.class
+luta/MetodoLuta.class
+luta/LutaValidacao.class
 lutador/LutadorHandler.class
 procedure/ProcedureHandler.class
 divisao/Divisao.class

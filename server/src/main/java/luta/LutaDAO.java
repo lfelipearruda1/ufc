@@ -30,18 +30,24 @@ public class LutaDAO {
         l.setApelidoDesafiante(rs.getString("apelido_desafiante"));
         l.setApelidoDesafiado(rs.getString("apelido_desafiado"));
         l.setVisibilidade(rs.getString("visibilidade"));
+        int idCinturao = rs.getInt("id_cinturao");
+        l.setIdCinturao(rs.wasNull() ? null : idCinturao);
+        l.setTipoCinturao(rs.getString("tipo_cinturao"));
+        l.setNomeDivisaoCinturao(rs.getString("nome_divisao_cinturao"));
         return l;
     }
 
     private static final String SELECT_BASE =
         "SELECT lu.id_luta, lu.metodo, lu.resultado, lu.quant_rounds, " +
-        "lu.id_desafiante, lu.id_desafiado, lu.id_card, lu.id_visibilidade, " +
+        "lu.id_desafiante, lu.id_desafiado, lu.id_card, lu.id_visibilidade, lu.id_cinturao, " +
         "d1.apelido AS apelido_desafiante, d2.apelido AS apelido_desafiado, " +
-        "v.visibilidade " +
+        "v.visibilidade, ci.tipo_cinturao, div.nome_divisao AS nome_divisao_cinturao " +
         "FROM luta lu " +
         "LEFT JOIN lutador d1 ON lu.id_desafiante = d1.id_lutador " +
         "LEFT JOIN lutador d2 ON lu.id_desafiado = d2.id_lutador " +
-        "LEFT JOIN visibilidadeluta v ON lu.id_visibilidade = v.id_visibilidade ";
+        "LEFT JOIN visibilidadeluta v ON lu.id_visibilidade = v.id_visibilidade " +
+        "LEFT JOIN cinturao ci ON lu.id_cinturao = ci.id_cinturao " +
+        "LEFT JOIN divisao div ON ci.id_divisao = div.id_divisao ";
 
     public String listar() throws SQLException {
         String sql = SELECT_BASE + "ORDER BY lu.id_luta";
@@ -80,10 +86,11 @@ public class LutaDAO {
     }
 
     public boolean inserir(Luta l) throws SQLException {
+        LutaValidacao.validar(l);
         try (Connection conn = DatabaseConnection.getConnection()) {
             l.setIdLuta(proximoId(conn));
-            String sql = "INSERT INTO luta (id_luta, metodo, resultado, quant_rounds, id_desafiante, id_desafiado, id_card, id_visibilidade) " +
-                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO luta (id_luta, metodo, resultado, quant_rounds, id_desafiante, id_desafiado, id_card, id_visibilidade, id_cinturao) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, l.getIdLuta());
                 ps.setString(2, l.getMetodo());
@@ -93,14 +100,20 @@ public class LutaDAO {
                 ps.setInt(6, l.getIdDesafiado());
                 ps.setInt(7, l.getIdCard());
                 ps.setInt(8, l.getIdVisibilidade());
+                if (l.getIdCinturao() != null) {
+                    ps.setInt(9, l.getIdCinturao());
+                } else {
+                    ps.setNull(9, Types.INTEGER);
+                }
                 return ps.executeUpdate() > 0;
             }
         }
     }
 
     public boolean atualizar(Luta l) throws SQLException {
+        LutaValidacao.validar(l);
         String sql = "UPDATE luta SET metodo=?, resultado=?, quant_rounds=?, id_desafiante=?, " +
-                     "id_desafiado=?, id_card=?, id_visibilidade=? WHERE id_luta=?";
+                     "id_desafiado=?, id_card=?, id_visibilidade=?, id_cinturao=? WHERE id_luta=?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, l.getMetodo());
@@ -110,7 +123,12 @@ public class LutaDAO {
             ps.setInt(5, l.getIdDesafiado());
             ps.setInt(6, l.getIdCard());
             ps.setInt(7, l.getIdVisibilidade());
-            ps.setInt(8, l.getIdLuta());
+            if (l.getIdCinturao() != null) {
+                ps.setInt(8, l.getIdCinturao());
+            } else {
+                ps.setNull(8, Types.INTEGER);
+            }
+            ps.setInt(9, l.getIdLuta());
             return ps.executeUpdate() > 0;
         }
     }

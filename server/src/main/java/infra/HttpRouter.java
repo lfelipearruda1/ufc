@@ -21,8 +21,8 @@ public class HttpRouter {
 
         server.createContext("/api/views",     new ConsultaHandler());
         server.createContext("/api/consultas", new ConsultaHandler());
-        server.createContext("/api/logs",      new ConsultaHandler());
         server.createContext("/api/cardppv",   new ConsultaHandler());
+        server.createContext("/api/cinturoes", new ConsultaHandler());
 
         server.createContext("/api/procedures", new ProcedureHandler());
     }

@@ -11,9 +11,12 @@ public class Luta {
     private int idDesafiado;
     private int idCard;
     private int idVisibilidade;
+    private Integer idCinturao;
     private String apelidoDesafiante;
     private String apelidoDesafiado;
     private String visibilidade;
+    private String tipoCinturao;
+    private String nomeDivisaoCinturao;
 
     public Luta() {}
 
@@ -50,6 +53,15 @@ public class Luta {
     public String getVisibilidade() { return visibilidade; }
     public void setVisibilidade(String visibilidade) { this.visibilidade = visibilidade; }
 
+    public Integer getIdCinturao() { return idCinturao; }
+    public void setIdCinturao(Integer idCinturao) { this.idCinturao = idCinturao; }
+
+    public String getTipoCinturao() { return tipoCinturao; }
+    public void setTipoCinturao(String tipoCinturao) { this.tipoCinturao = tipoCinturao; }
+
+    public String getNomeDivisaoCinturao() { return nomeDivisaoCinturao; }
+    public void setNomeDivisaoCinturao(String nomeDivisaoCinturao) { this.nomeDivisaoCinturao = nomeDivisaoCinturao; }
+
     public String toJson() {
         return "{" +
             "\"id_luta\":" + idLuta + "," +
@@ -60,9 +72,12 @@ public class Luta {
             "\"id_desafiado\":" + idDesafiado + "," +
             "\"id_card\":" + idCard + "," +
             "\"id_visibilidade\":" + idVisibilidade + "," +
+            "\"id_cinturao\":" + (idCinturao != null ? idCinturao : "null") + "," +
             "\"apelido_desafiante\":\"" + JsonUtil.escapeString(apelidoDesafiante) + "\"," +
             "\"apelido_desafiado\":\"" + JsonUtil.escapeString(apelidoDesafiado) + "\"," +
-            "\"visibilidade\":\"" + JsonUtil.escapeString(visibilidade) + "\"" +
+            "\"visibilidade\":\"" + JsonUtil.escapeString(visibilidade) + "\"," +
+            "\"tipo_cinturao\":\"" + JsonUtil.escapeString(tipoCinturao) + "\"," +
+            "\"nome_divisao_cinturao\":\"" + JsonUtil.escapeString(nomeDivisaoCinturao) + "\"" +
             "}";
     }
 }
